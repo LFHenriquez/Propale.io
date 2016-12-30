@@ -23,6 +23,6 @@ require_once(PLUGIN_DIR . 'includes/functions.php');    // main plugin functions
 include(PLUGIN_DIR . 'includes/core.php');              // main plugin functions
 include(PLUGIN_DIR . 'includes/hide-admin.php');        // hide admin panel for guests
 include(PLUGIN_DIR . 'includes/auto-login.php');        // check auto login links
-include(PLUGIN_DIR . 'includes/settings.php');          // the plugin options page HTML
+include(PLUGIN_DIR . 'includes/admin.php');		        // the plugin options page HTML
 include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
 include(PLUGIN_DIR . 'includes/slide-shortcode.php');   // the slides' shortcode

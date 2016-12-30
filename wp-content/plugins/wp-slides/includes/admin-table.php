@@ -10,7 +10,7 @@ if (!class_exists('WP_List_Table')) {
 /*----------------------------------------------
 Class
 ----------------------------------------------*/
-class User_Tags_Table extends WP_List_Table
+class Client_Table extends WP_List_Table
 {
     
     /**
@@ -194,8 +194,7 @@ class User_Tags_Table extends WP_List_Table
             
             case 'add_tag':
                 if ($users_id)
-                    foreach ($users_id as $user_id) {
-                        $current_tags = explode(',', get_user_option('tags', (int) $user_id));
+                    foreach ($users_id as $user_id) {$current_tags = explode(',', get_user_option('tags', (int) $user_id));
                         if ($tags)
                             foreach ($tags as $tag) {
                                 if (array_search($tag, $current_tags) === false) {
