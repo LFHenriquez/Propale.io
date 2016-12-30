@@ -17,6 +17,11 @@ define('PLUGIN_DIR', plugin_dir_path(__FILE__)); // Defining plugin dir path.
 define('PLUGIN_URL', plugin_dir_url( __FILE__ )); // Defining plugin url.
 
 /*----------------------------------------------
+Registering
+----------------------------------------------*/
+register_activation_hook(__FILE__, 'wp_slides_activate');
+
+/*----------------------------------------------
 Including Files
 ----------------------------------------------*/
 require_once(PLUGIN_DIR . 'includes/functions.php');    // main plugin functions
@@ -26,3 +31,28 @@ include(PLUGIN_DIR . 'includes/auto-login.php');        // check auto login link
 include(PLUGIN_DIR . 'includes/admin.php');		        // the plugin options page HTML
 include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
 include(PLUGIN_DIR . 'includes/slide-shortcode.php');   // the slides' shortcode
+
+
+/*----------------------------------------------
+Functions
+----------------------------------------------*/
+
+/**
+ * Init on activation of plugin
+ */
+function wp_slides_activate()
+{
+    // Initialize on first activation
+    $guest_role = 'guest';
+    if (!get_role($guest_role)) {
+        add_role($guest_role, 'Guest', array(
+            'read' => true,
+            'level_0' => true
+        ));
+        update_option('user_guest_role', $guest_role, yes);
+        update_option('default_role', $guest_role, yes);
+        update_option('enable_slack_notification', 'false', yes);
+        update_option('slack_room', '', yes);
+        update_option('slack_webhook', '', yes);
+    }
+}
