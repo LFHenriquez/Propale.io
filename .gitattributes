@@ -1,3 +1,4 @@
+wp-content/vpdb/**/*.ini merge=vp-ini
 # Auto detect text files and perform LF normalization
 * text=auto
 
