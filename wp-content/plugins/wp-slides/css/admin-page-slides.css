@@ -1,0 +1,12 @@
+#col-container #col-left {
+	width: 25%;
+}
+#col-container #col-right {
+	width: 75%;
+}
+.fixed .column-slug {
+    width: 100px;
+}
+.column-name {
+    //width: 150px;
+}

@@ -4,7 +4,7 @@
 Action
 ----------------------------------------------*/
 add_action( 'init', 'create_slides_type' );
-add_action( 'init', 'create_service_taxonomy');
+add_action( 'init', 'create_slides_taxonomy');
 
 /*----------------------------------------------
 Functions
@@ -20,28 +20,42 @@ function create_slides_type() {
                 'name' => __( 'Slides' ),
                 'singular_name' => __( 'Slide' )
             ),
-        'public' => true
+        'public' => true,
+        'publicly_queryable' => true,
+        'show_ui' => true,
+        'has_archive' => true,
+        'supports' => array(
+            'title' => true,
+            'editor' => true,
+            'author' => true,
+            'thumbnail' => true,
+            'excerpt' => false,
+            'custom-fields' => true,
+            'comments' => false,
+            'revisions' => true,
+            'page-attributes' => false
+            )
         )
     );
 }
 
 /**
- * Create new taxonomy : service
+ * Create new taxonomy : group of slides
  */
-function create_service_taxonomy() {
+function create_slides_taxonomy() {
     // Add new taxonomy, make it hierarchical (like categories)
     $labels = array(
-        'name'              => _x( 'Services', 'taxonomy general name', 'textdomain' ),
-        'singular_name'     => _x( 'Service', 'taxonomy singular name', 'textdomain' ),
-        'search_items'      => __( 'Search Services', 'textdomain' ),
-        'all_items'         => __( 'All Services', 'textdomain' ),
-        'parent_item'       => __( 'Parent Service', 'textdomain' ),
-        'parent_item_colon' => __( 'Parent Service:', 'textdomain' ),
-        'edit_item'         => __( 'Edit Service', 'textdomain' ),
-        'update_item'       => __( 'Update Service', 'textdomain' ),
-        'add_new_item'      => __( 'Add New Service', 'textdomain' ),
-        'new_item_name'     => __( 'New Service Name', 'textdomain' ),
-        'menu_name'         => __( 'Services', 'textdomain' ),
+        'name'              => _x( 'Groups of slides', 'taxonomy general name', 'textdomain' ),
+        'singular_name'     => _x( 'Group of slides', 'taxonomy singular name', 'textdomain' ),
+        'search_items'      => __( 'Search groups of slides', 'textdomain' ),
+        'all_items'         => __( 'All groups of slides', 'textdomain' ),
+        'parent_item'       => __( 'Parent group of slides', 'textdomain' ),
+        'parent_item_colon' => __( 'Parent group of slides:', 'textdomain' ),
+        'edit_item'         => __( 'Edit group of slides', 'textdomain' ),
+        'update_item'       => __( 'Update group of slides', 'textdomain' ),
+        'add_new_item'      => __( 'Add new group of slides', 'textdomain' ),
+        'new_item_name'     => __( 'New name for group of slides', 'textdomain' ),
+        'menu_name'         => __( 'Groups of slides', 'textdomain' ),
     );
 
     $args = array(
@@ -50,8 +64,8 @@ function create_service_taxonomy() {
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
-        'rewrite'           => array( 'slug' => 'service' ),
+        'rewrite'           => array( 'slug' => 'slides-group' ),
     );
 
-    register_taxonomy( 'service', array( 'slide' ), $args );
+    register_taxonomy( 'slides-group', array( 'slide' ), $args );
 }

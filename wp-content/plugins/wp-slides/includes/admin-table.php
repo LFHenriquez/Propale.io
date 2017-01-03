@@ -64,7 +64,7 @@ class Client_Table extends WP_List_Table
             'delete' => sprintf('<a href="%susers.php?action=remove&user=%s&_wpnonce=%s">Supprimer</a>', admin_url(), $item['user_id'], wp_create_nonce('bulk-users'))
         );
         
-        $logo = ($item['user_logo']) ? $item['user_logo'] : plugins_url("/img/avatar.png", __FILE__);
+        $logo = ($item['user_logo']) ? $item['user_logo'] : plugins_url("../img/avatar.png", __FILE__);
         //Return the title contents
         return sprintf('<img alt="" src="%1$s" srcset="%2$s" class="avatar avatar-32 photo" height="32" width="32">
                 <strong>%3$s</strong>%4$s', $logo, $logo, $item['user_name'], $this->row_actions($actions));
@@ -269,17 +269,18 @@ class Client_Table extends WP_List_Table
         $this->process_bulk_action();
         /* -- Preparing your query -- */
         $prefix          = $wpdb->get_blog_prefix();
+        $prefix_meta     = (is_multisite())? $wpdb->get_blog_prefix(): '';
         $user_guest_role = get_option('user_guest_role', 'guest');
         $regexp          = esc_sql('s:' . strlen($user_guest_role) . ':"' . $user_guest_role . '";');
         $query           = "
                         SELECT ID as user_id, display_name AS user_name, user_email, user_phone, user_login, user_tags, mail_sent, last_login, user_logo FROM wp_users
-                        LEFT JOIN (SELECT meta_value as user_tags, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix . "tags') as wp1 ON wp_users.ID = wp1.user_id
-                        LEFT JOIN (SELECT meta_value as mail_sent, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix . "mail_sent') as wp2 ON wp_users.ID = wp2.user_id
-                        LEFT JOIN (SELECT meta_value as last_login, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix . "last_autologin') as wp3 ON wp_users.ID = wp3.user_id
-                        LEFT JOIN (SELECT meta_value as user_phone, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix . "phone') as wp4 ON wp_users.ID = wp4.user_id
-                        LEFT JOIN (SELECT meta_value as user_logo, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix . "logo') as wp5 ON wp_users.ID = wp5.user_id
+                        LEFT JOIN (SELECT meta_value as user_tags, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "tags') as wp1 ON wp_users.ID = wp1.user_id
+                        LEFT JOIN (SELECT meta_value as mail_sent, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "mail_sent') as wp2 ON wp_users.ID = wp2.user_id
+                        LEFT JOIN (SELECT meta_value as last_login, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "last_autologin') as wp3 ON wp_users.ID = wp3.user_id
+                        LEFT JOIN (SELECT meta_value as user_phone, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "phone') as wp4 ON wp_users.ID = wp4.user_id
+                        LEFT JOIN (SELECT meta_value as user_logo, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "logo_url') as wp5 ON wp_users.ID = wp5.user_id
                         WHERE ID IN (
-                                SELECT distinct(user_id) FROM ebdb.wp_usermeta where (meta_key = '" . $prefix . "capabilities' and meta_value REGEXP '" . $regexp . "'))";
+                                SELECT distinct(user_id) FROM wp_usermeta where (meta_key = 'wp_capabilities' and meta_value REGEXP '" . $regexp . "'))";
         
         /* -- Ordering parameters -- */
         //Parameters that are going to be used to order the result

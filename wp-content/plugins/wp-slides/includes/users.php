@@ -13,7 +13,7 @@ Functions
 ----------------------------------------------*/
 function show_user_tags_in_profile($user)
 { ?>
-    <h3>User Tags Plugin</h3>
+    <h2>User Tags Plugin</h2>
     <table class="form-table">
         <tr>
             <th><label for="user_tags">Tags</label></th>

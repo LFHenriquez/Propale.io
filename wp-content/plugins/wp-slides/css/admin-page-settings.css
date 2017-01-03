@@ -1,0 +1,12 @@
+.th-left-align {
+	text-align: left;
+}
+.th-left-align tr{
+	vertical-align: top;
+}
+.th-left-align input[type='checkbox'] {
+	margin-left: 1px;
+}
+.th-left-align th {
+	padding: 5px;
+}

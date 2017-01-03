@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jquery setinterval stop after sometime</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/corejs-typeahead/0.11.1/typeahead.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/corejs-typeahead/0.11.1/typeahead.jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css">
+	<style type="text/css">
+		.typeahead {
+		  background-color: #fff;
+		}
+		.typeahead:focus {
+		  border: 2px solid #0097cf;
+		}
+		.tt-query {
+		  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+		     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+		          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+		}
+		.tt-hint {
+		  color: #999
+		}
+		.tt-menu {
+		  width: 550px;
+		  margin: 12px 0;
+		  padding: 8px 0;
+		  background-color: #fff;
+		  border: 1px solid #ccc;
+		  border: 1px solid rgba(0, 0, 0, 0.2);
+		  -webkit-border-radius: 8px;
+		     -moz-border-radius: 8px;
+		          border-radius: 8px;
+		  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+		     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+		          box-shadow: 0 5px 10px rgba(0,0,0,.2);
+		    left: 17px !important;
+		    top: 75% !important;
+		}
+		.tt-suggestion {
+		  padding: 3px 20px;
+		  font-size: 18px;
+		  line-height: 24px;
+		}
+		.tt-suggestion:hover {
+		  cursor: pointer;
+		  color: #fff;
+		  background-color: #0097cf;
+		}
+		.tt-suggestion.tt-cursor {
+		  color: #fff;
+		  background-color: #0097cf;
+		}
+		.image-ajax .image {
+		  width: 50px;
+		  float: left;
+		}
+		.image-ajax .menu-text{
+		    padding-bottom: 0px;
+		    margin: 0px;
+		}
+		.image-ajax .price{
+		    font-size: 12px;
+		    margin: 0px;
+		}
+		.image-ajax .ajax-text{
+		    padding-left: 60px;
+		}
+		.tt-suggestion.tt-cursor {
+		  color: #fff;
+		  background-color: #0097cf;
+		}
+		.tt-suggestion p {
+		  margin: 5px;
+		}
+	</style>
+</head>
+<body>
+
+	<input type="text" name="search" class="typeahead form-control">
+
+	<div class="selected-dom" style="display:none">
+		<strong>Name : </strong><p class="name"></p>
+		<strong>Domain : </strong><p class="domain"></p>
+		<strong>Logo : </strong><img class="logo" src="">
+	</div>
+
+	<script type="text/javascript">
+		var suggestionEngine = new Bloodhound({
+	      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+	      queryTokenizer: Bloodhound.tokenizers.whitespace,
+	      remote: {
+	        url: 'http://propale.io/wp-admin/admin-ajax.php?action=company_name&term=',
+	        replace: function(url, query) {
+	          return url + query;
+	        },
+	        transform: function(response) {
+	          return response;
+	        },
+	        ajax: {
+	          type: "POST",
+	          data: {
+	            q: function() {
+	              return $('.typeahead').val()
+	            }
+	          }
+	        }
+	      }
+	    });
+	    var suggestionTemplate = function (data) {
+	        return '<div class="image-ajax"><img class="image" src="' + data.logo + '"/> <div class="ajax-text"><p class="menu-text">' + data.name + '</p>' + '<p class="price menu-text"> ' + data.domain + '</p></div></div>';
+	    }
+	    $('.typeahead').typeahead(
+	      {
+	        highlight: true,
+	        minLength:3
+	      },
+	      {
+	        name: 'page',
+	        display: 'title',
+	        source: suggestionEngine,
+	        templates: {
+	          notFound: '<p align="center"> not found </p>',
+	          suggestion: suggestionTemplate,
+	          pending: '<p align="center">Loading</p>'
+	        },
+	      }).bind('typeahead:select', function(ev, suggestion) {
+	      		$(".selected-dom").css("display","block");
+	      		$(".name").text(suggestion.name);
+	      		$(".domain").text(suggestion.domain);
+	      		$(".logo").attr("src",suggestion.logo);
+	      		$(".typeahead").typeahead('val',suggestion.name);
+	    });
+	</script>
+
+</body>
+</html>

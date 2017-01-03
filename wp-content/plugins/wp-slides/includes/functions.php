@@ -1,17 +1,18 @@
 <?php
 
-function clean_redirect_wp_admin($args = array())
+function clean_redirect_wp_admin($args = array(), $page = 'admin.php')
 {
-    if (isset($_REQUEST['page'])) {
-        $params = 'page=' . $_REQUEST['page'];
-        foreach (array('orderby','order','paged','per_page') as $value)
-            if ($_REQUEST[$value])
-                $params .= '&' . $value . '=' . $_REQUEST[$value];
-        foreach ($args as $key => $value)
-            $params .= '&' . $key . '=' . $value;
-        wp_redirect(admin_url('admin.php?' . $params));
+    $params = (isset($_REQUEST['page']) && $page == 'admin.php')? 'page=' . $_REQUEST['page']: '';
+    foreach (array('orderby','order','paged','per_page') as $value)
+        if (!empty($_REQUEST[$value]))
+            $params .= '&' . $value . '=' . $_REQUEST[$value];
+    foreach ($args as $key => $value)
+        $params .= '&' . $key . '=' . $value;
+
+    if (!empty($params)) {
+        wp_redirect(admin_url($page.'?'.$params));
     } else
-        wp_redirect(admin_url('admin.php'));
+        wp_redirect(admin_url($page));
 }
 
 /**
