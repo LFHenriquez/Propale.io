@@ -65,7 +65,7 @@ function wp_slides_activate()
 	$charset_collate = $wpdb->get_charset_collate();
 
 	$sql = "CREATE TABLE $table_name (
-	  id mediumint(9) NOT NULL AUTO_INCREMENT,
+	  client_id mediumint(9) NOT NULL AUTO_INCREMENT,
 	  groups_of_slides text,
 	  mail_sent datetime,
 	  mail_opened datetime,
