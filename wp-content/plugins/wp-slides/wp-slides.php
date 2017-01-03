@@ -66,12 +66,12 @@ function wp_slides_activate()
 
 	$sql = "CREATE TABLE $table_name (
 	  client_id mediumint(9) NOT NULL AUTO_INCREMENT,
+	  user_phone varchar(14),
+	  user_logo varchar(100),
 	  groups_of_slides text,
 	  mail_sent datetime,
 	  mail_opened datetime,
 	  last_login datetime,
-	  logo_url varchar(100),
-	  phone varchar(14),
 	  PRIMARY KEY  (client_id)
 	) $charset_collate;";
 
