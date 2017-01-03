@@ -69,9 +69,10 @@ function wp_slides_activate()
 	  groups_of_slides text,
 	  mail_sent datetime,
 	  mail_opened datetime,
-	  last_connection datetime,
+	  last_login datetime,
+	  logo_url varchar(100),
 	  phone varchar(14),
-	  PRIMARY KEY  (id)
+	  PRIMARY KEY  (client_id)
 	) $charset_collate;";
 
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
