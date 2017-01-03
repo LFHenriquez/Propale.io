@@ -59,7 +59,9 @@ function wp_slides_activate()
         update_option('slack_webhook', '', yes);
     }
     flush_rewrite_rules();
-    
+
+    $prefix = $wpdb->get_blog_prefix();
+    $table_name	= $prefix. 'proposal';
 	$charset_collate = $wpdb->get_charset_collate();
 
 	$sql = "CREATE TABLE $table_name (
