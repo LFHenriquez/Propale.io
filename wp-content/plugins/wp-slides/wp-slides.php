@@ -30,7 +30,7 @@ include(PLUGIN_DIR . 'includes/hide-admin.php');        // hide admin panel for 
 include(PLUGIN_DIR . 'includes/auto-login.php');        // check auto login links
 include(PLUGIN_DIR . 'includes/admin.php');		        // the plugin options page HTML
 include(PLUGIN_DIR . 'includes/settings.php');          // settings page for the extension
-include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
+// include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
 include(PLUGIN_DIR . 'includes/slide-shortcode.php');   // the slides' shortcode
 include(PLUGIN_DIR . 'includes/ajax.php');   			// ajax backend
 
@@ -45,6 +45,8 @@ Functions
 function wp_slides_activate()
 {
 	global $wpdb;
+	global $wp_rewrite;
+    
     // Initialize on first activation
     $guest_role = 'guest';
     if (!get_role($guest_role)) {
@@ -58,14 +60,13 @@ function wp_slides_activate()
         update_option('slack_room', '', yes);
         update_option('slack_webhook', '', yes);
     }
-    flush_rewrite_rules();
 
     $prefix = $wpdb->get_blog_prefix();
     $table_name	= $prefix. 'proposal';
 	$charset_collate = $wpdb->get_charset_collate();
 
 	$sql = "CREATE TABLE $table_name (
-	  client_id mediumint(9) NOT NULL AUTO_INCREMENT,
+	  client_id mediumint(9) NOT NULL,
 	  user_phone varchar(14),
 	  user_logo varchar(100),
 	  groups_of_slides text,
@@ -77,4 +78,8 @@ function wp_slides_activate()
 
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta( $sql );
+
+    add_rewrite_rule('^([0-9]+)/img.png$', WP_PLUGIN_URL . '/tracking?id=$matches[1]', 'top');
+    flush_rewrite_rules();
 }
+

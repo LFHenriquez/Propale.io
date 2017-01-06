@@ -38,7 +38,7 @@ function client_setting_page()
         if ($modified)
             clean_redirect_wp_admin();
         ?>
-        <h2>User Tags Plugin</h2>
+        <h2>Slides plugin</h2>
         <form method="get"><input type="hidden" name="page" value="user-tags-plugin-settings"/>
             <table class="th-left-align">
                 <tr>

@@ -49,3 +49,6 @@
 #filter-div input {
 	width: 100px;
 }
+.wp-admin p input[type=checkbox] {
+    margin-left: 7px;
+}

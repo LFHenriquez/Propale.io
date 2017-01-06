@@ -7,7 +7,8 @@ function clean_redirect_wp_admin($args = array(), $page = 'admin.php')
         if (!empty($_REQUEST[$value]))
             $params .= '&' . $value . '=' . $_REQUEST[$value];
     foreach ($args as $key => $value)
-        $params .= '&' . $key . '=' . $value;
+        if (!empty($value))
+            $params .= '&' . $key . '=' . $value;
 
     if (!empty($params)) {
         wp_redirect(admin_url($page.'?'.$params));

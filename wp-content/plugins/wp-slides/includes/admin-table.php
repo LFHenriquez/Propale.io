@@ -33,7 +33,7 @@ class Client_Table extends WP_List_Table
     public function extra_tablenav($which)
     {
         if ($which == "top") {
-            echo "<div id='filter-div' class='alignright'><input type='text' name='search-tag' placeholder='Etiquette(s)'></div>";
+            // echo "<div id='filter-div' class='alignright'><input type='text' name='search-group-of-slide' placeholder='Groupe de Slides'></div>";
             //The code that goes before the table is here
         }
         if ($which == "bottom") {
@@ -47,7 +47,7 @@ class Client_Table extends WP_List_Table
             case "user_id":
             case "user_email":
             case "user_phone":
-            case "user_tags":
+            case "groups_of_slides":
             case "mail_sent":
             case "last_login":
                 return $item[$column_name];
@@ -92,7 +92,7 @@ class Client_Table extends WP_List_Table
             'user_name' 	=> 'Nom',
             'user_email' 	=> 'Email',
             'user_login' 	=> 'Lien',
-            'user_tags' 	=> 'Etiquette',
+            'groups_of_slides' 	=> 'Groupe de Slides',
             'mail_sent' 	=> 'Mail envoyé',
             'last_login' 	=> 'Dernière connexion',
             'user_phone' 	=> 'Téléphone'
@@ -149,87 +149,97 @@ class Client_Table extends WP_List_Table
     public function get_bulk_actions()
     {
         $actions = array(
-            'get_tag' => 'Etiquette(s)',
-            'add_tag' => 'Ajouter étiquettes(s)',
-            'copy_tag' => 'Répliquer étiquette(s)',
-            'delete_tag' => 'Supprimer étiquette(s)',
+            'get_group_of_slide' => 'Groupe de Slides',
+            'add_group_of_slide' => 'Ajouter groupe de slides',
+            'copy_group_of_slide' => 'Répliquer groupe de slides',
+            'delete_group_of_slide' => 'Supprimer groupe de slides',
             'send_mail' => 'Envoyer mail(s)'
         );
         return $actions;
     }
     
-    public function process_bulk_action()
+    public static function process_bulk_action()
     {
         // security check!
         if (isset($_POST['_wpnonce']) && !empty($_POST['_wpnonce'])) {
             
             $nonce  = filter_input(INPUT_POST, '_wpnonce', FILTER_SANITIZE_STRING);
-            $action = 'bulk-' . $this->_args['plural'];
+            $action = 'bulk-groups_of_slides';
             
             if (!wp_verify_nonce($nonce, $action))
                 wp_die('Nope! Security check failed!');
         }
         
-        $action   = $this->current_action();
+        $action   = $_REQUEST['action'];
         $users_id = $_REQUEST['user_id'];
-        $tags     = $_REQUEST['tags'];
         
         switch ($action) {
             
-            case 'get_tag':
+            case 'get_group_of_slide':
+                $get_groups_of_slides = array();
                 if ($users_id)
+                {
                     foreach ($users_id as $user_id) {
-                        $current_tags = explode(',', get_user_option('tags', (int) $user_id));
-                        foreach ($tags as $tag) {
-                            if (array_search($tag, $current_tags) === false) {
-                                $get_tags[] = $tag;
+                        $client = new Client($user_id);
+                        $current_groups_of_slides_temp = $client->get_groups_of_slides();
+                        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
+                        foreach ($current_groups_of_slides as $current_group_of_slide) {
+                            if (array_search($current_group_of_slide, $get_groups_of_slides) === false) {
+                                $get_groups_of_slides[] = $current_group_of_slide;
                             }
                         }
-                        $tags_to_check = implode(',', $current_tags);
                     }
-                clean_redirect_wp_admin(array(
-                    'tags_checked' => $tags_to_check
-                ));
+                    $groups_of_slides_to_check = implode(',', $current_groups_of_slides);
+                    clean_redirect_wp_admin(array(
+                        'groups_of_slides_checked' => $groups_of_slides_to_check
+                    ));
+                }
+                else
+                    clean_redirect_wp_admin();
                 break;
             
-            case 'add_tag':
+            case 'add_group_of_slide':
                 if ($users_id)
-                    foreach ($users_id as $user_id) {$current_tags = explode(',', get_user_option('tags', (int) $user_id));
-                        if ($tags)
-                            foreach ($tags as $tag) {
-                                if (array_search($tag, $current_tags) === false) {
-                                    if ($current_tags[0] == '')
-                                        $current_tags[0] = $tag;
+                    foreach ($users_id as $user_id) {
+                        $client = new Client($user_id);
+                        $current_groups_of_slides_temp = $client->get_groups_of_slides();
+                        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
+                        if ($groups_of_slides)
+                            foreach ($groups_of_slides as $group_of_slide) {
+                                if (array_search($group_of_slide, $current_groups_of_slides) === false) {
+                                    if ($current_groups_of_slides[0] == '')
+                                        $current_groups_of_slides[0] = $group_of_slide;
                                     else
-                                        $current_tags[] = $tag;
+                                        $current_groups_of_slides[] = $group_of_slide;
                                 }
                             }
-                        $new_tags = implode(',', $current_tags);
-                        update_user_option((int) $user_id, 'tags', $new_tags);
+                        $new_groups_of_slides = implode(',', $current_groups_of_slides);
+                        $client->set_groups_of_slides($new_groups_of_slides);
+                    }
+                var_dump($new_groups_of_slides);
+                //clean_redirect_wp_admin();
+                break;
+            
+            case 'copy_group_of_slide':
+                if ($users_id)
+                    foreach ($users_id as $user_id) {
+                        update_user_option((int) $user_id, 'groups_of_slides', $groups_of_slides);
                     }
                 clean_redirect_wp_admin();
                 break;
             
-            case 'copy_tag':
+            case 'delete_group_of_slide':
                 if ($users_id)
                     foreach ($users_id as $user_id) {
-                        update_user_option((int) $user_id, 'tags', $tags);
-                    }
-                clean_redirect_wp_admin();
-                break;
-            
-            case 'delete_tag':
-                if ($users_id)
-                    foreach ($users_id as $user_id) {
-                        $current_tags = explode(',', get_user_option('tags', (int) $user_id));
-                        if ($tags)
-                            foreach ($tags as $tag) {
-                                if (($key = array_search($tag, $current_tags)) !== false) {
-                                    unset($current_tags[$key]);
+                        $current_groups_of_slides = explode(',', get_user_option('groups_of_slides', (int) $user_id));
+                        if ($groups_of_slides)
+                            foreach ($groups_of_slides as $group_of_slide) {
+                                if (($key = array_search($group_of_slide, $current_groups_of_slides)) !== false) {
+                                    unset($current_groups_of_slides[$key]);
                                 }
                             }
-                        $new_tags = implode(',', $current_tags);
-                        update_user_option((int) $user_id, 'tags', $new_tags);
+                        $new_groups_of_slides = implode(',', $current_groups_of_slides);
+                        update_user_option((int) $user_id, 'groups_of_slides', $new_groups_of_slides);
                     }
                 clean_redirect_wp_admin();
                 break;
@@ -266,21 +276,14 @@ class Client_Table extends WP_List_Table
         global $wpdb, $_wp_column_headers;
         $screen = get_current_screen();
         
-        $this->process_bulk_action();
         /* -- Preparing your query -- */
         $prefix          = $wpdb->get_blog_prefix();
-        $prefix_meta     = (is_multisite())? $wpdb->get_blog_prefix(): '';
         $user_guest_role = get_option('user_guest_role', 'guest');
         $regexp          = esc_sql('s:' . strlen($user_guest_role) . ':"' . $user_guest_role . '";');
         $query           = "
-                        SELECT ID as user_id, display_name AS user_name, user_email, user_phone, user_login, user_tags, mail_sent, last_login, user_logo FROM wp_users
-                        LEFT JOIN (SELECT meta_value as user_tags, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "tags') as wp1 ON wp_users.ID = wp1.user_id
-                        LEFT JOIN (SELECT meta_value as mail_sent, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "mail_sent') as wp2 ON wp_users.ID = wp2.user_id
-                        LEFT JOIN (SELECT meta_value as last_login, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "last_autologin') as wp3 ON wp_users.ID = wp3.user_id
-                        LEFT JOIN (SELECT meta_value as user_phone, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "phone') as wp4 ON wp_users.ID = wp4.user_id
-                        LEFT JOIN (SELECT meta_value as user_logo, user_id FROM wp_usermeta WHERE wp_usermeta.meta_key = '" . $prefix_meta . "logo_url') as wp5 ON wp_users.ID = wp5.user_id
-                        WHERE ID IN (
-                                SELECT distinct(user_id) FROM wp_usermeta where (meta_key = 'wp_capabilities' and meta_value REGEXP '" . $regexp . "'))";
+            SELECT ID as user_id, display_name AS user_name, user_email, user_phone, user_logo, groups_of_slides, mail_sent, mail_opened, last_login FROM ".$prefix."users
+            LEFT JOIN (SELECT * FROM wp_proposal) as wp1 ON ".$prefix."users.ID = wp1.client_id
+            WHERE ID IN (SELECT distinct(user_id) FROM wp_usermeta where (meta_key = 'wp_capabilities' and meta_value REGEXP '" . $regexp . "'))";
         
         /* -- Ordering parameters -- */
         //Parameters that are going to be used to order the result
