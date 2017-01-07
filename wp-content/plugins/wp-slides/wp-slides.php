@@ -86,11 +86,3 @@ function wp_slides_activate()
 		'top' );
     $wp_rewrite->flush_rules();
 }
-
-
-function mail_tracking_activate() {
-	global $wp_rewrite;
-	mail_tracking_add_rewrite_rules();
-	$wp_rewrite->flush_rules();
-}
-register_activation_hook( __FILE__, 'mail_tracking_activate' );
