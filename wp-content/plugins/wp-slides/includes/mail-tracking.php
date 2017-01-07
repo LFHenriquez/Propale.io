@@ -15,6 +15,14 @@ function mail_tracking_template_redirect_intercept() {
 }
 add_action( 'template_redirect', 'mail_tracking_template_redirect_intercept' );
 
+function mail_tracking_add_rewrite_rules() {
+	$rule = '^/mail/img/([0-9]+).png$';
+	add_rewrite_rule(
+		$rule,
+		'index.php?mail-tracking=1&user-id=$matches[1]',
+		'top' );
+}
+
 function mail_tracking_rewrites_init() {
 	add_rewrite_tag( '%mail-tracking%', '([0-9]+)' );
 	add_rewrite_tag( '%user-id%', '([0-9]+)' );
