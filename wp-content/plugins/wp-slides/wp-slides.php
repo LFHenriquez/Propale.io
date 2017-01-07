@@ -30,9 +30,9 @@ include(PLUGIN_DIR . 'includes/hide-admin.php');        // hide admin panel for 
 include(PLUGIN_DIR . 'includes/auto-login.php');        // check auto login links
 include(PLUGIN_DIR . 'includes/admin.php');		        // the plugin options page HTML
 include(PLUGIN_DIR . 'includes/settings.php');          // settings page for the extension
-// include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
 include(PLUGIN_DIR . 'includes/slide-shortcode.php');   // the slides' shortcode
 include(PLUGIN_DIR . 'includes/ajax.php');   			// ajax backend
+// include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
 
 
 /*----------------------------------------------
@@ -79,7 +79,18 @@ function wp_slides_activate()
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta( $sql );
 
-    add_rewrite_rule('^([0-9]+)/img.png$', WP_PLUGIN_URL . '/tracking?id=$matches[1]', 'top');
-    flush_rewrite_rules();
+	$rule = '^/mail/img/([0-9]+).png$';
+	add_rewrite_rule(
+		$rule,
+		'index.php?mail-tracking=1&user-id=$matches[1]',
+		'top' );
+    $wp_rewrite->flush_rules();
 }
 
+
+function mail_tracking_activate() {
+	global $wp_rewrite;
+	mail_tracking_add_rewrite_rules();
+	$wp_rewrite->flush_rules();
+}
+register_activation_hook( __FILE__, 'mail_tracking_activate' );

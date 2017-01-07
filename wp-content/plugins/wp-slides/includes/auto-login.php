@@ -26,7 +26,8 @@ function auto_login()
             wp_set_current_user($user_id, $user_login);
             wp_set_auth_cookie($user_id);
             do_action('wp_login', $user_login);
-            update_user_option($user_id, 'last_autologin', current_time('mysql'));
+            $client = new Client($user_id);
+            $client->last_login();
             if (get_option('enable_slack_notification',false))
             	slack_message($display_name . ' s\'est connecté sur sa proposition commerciale');
         }   

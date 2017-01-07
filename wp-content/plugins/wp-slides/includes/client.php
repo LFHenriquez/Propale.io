@@ -127,9 +127,9 @@
         return get_item('mail_sent');
     }
 
-    public function set_mail_sent($value)
+    public function send_mail()
     {
-        return set_item('mail_sent', $value);
+        return set_item('mail_sent', current_time('mysql'));
     }
 
     public function get_mail_opened()
@@ -137,9 +137,9 @@
         return get_item('mail_opened');
     }
 
-    public function set_mail_opened($value)
+    public function mail_opened($value)
     {
-        return set_item('mail_opened', $value);
+        return set_item('mail_opened', current_time('mysql'));
     }
 
     public function get_last_login()
@@ -147,9 +147,9 @@
         return get_item('last_login');
     }
 
-    public function set_last_login($value)
+    public function last_login()
     {
-        return set_item('last_login', $value);
+        return set_item('last_login', current_time('mysql'));
     }
 
     private function get_item($item)
