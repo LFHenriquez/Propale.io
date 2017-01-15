@@ -13,6 +13,9 @@
 	width: 80px;
 }
 .column-mail_sent {
+    width: 155px;
+}
+.column-mail_opened {
 	width: 155px;
 }
 .column-last_login {

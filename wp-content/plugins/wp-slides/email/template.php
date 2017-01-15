@@ -8,3 +8,9 @@ else
 ?>
 
 Bonne journée !
+<?php
+if(isset($id))
+    echo "<img src=/mail/img/".$id.".png";
+else
+	$failed = true;
+?>

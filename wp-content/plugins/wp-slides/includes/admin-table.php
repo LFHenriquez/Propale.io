@@ -49,6 +49,7 @@ class Client_Table extends WP_List_Table
             case "user_phone":
             case "groups_of_slides":
             case "mail_sent":
+            case "mail_opened":
             case "last_login":
                 return $item[$column_name];
             default:
@@ -60,7 +61,7 @@ class Client_Table extends WP_List_Table
     {
         //Build row actions
         $actions = array(
-            'edit' => sprintf('<a href="%suser-edit.php?user_id=%s">Modifier</a>', admin_url(), $item['user_id']),
+            'edit' => sprintf('<a href="%sadmin.php?page=client&client_id=%s">Modifier</a>', admin_url(), $item['user_id']),
             'delete' => sprintf('<a href="%susers.php?action=remove&user=%s&_wpnonce=%s">Supprimer</a>', admin_url(), $item['user_id'], wp_create_nonce('bulk-users'))
         );
         
@@ -93,7 +94,8 @@ class Client_Table extends WP_List_Table
             'user_email' 	=> 'Email',
             'user_login' 	=> 'Lien',
             'groups_of_slides' 	=> 'Groupe de Slides',
-            'mail_sent' 	=> 'Mail envoyé',
+            'mail_sent'     => 'Mail envoyé',
+            'mail_opened' 	=> 'Mail ouvert',
             'last_login' 	=> 'Dernière connexion',
             'user_phone' 	=> 'Téléphone'
         ); 
@@ -137,6 +139,10 @@ class Client_Table extends WP_List_Table
             ),
             'mail_sent' => array(
                 'mail_sent',
+                false
+            ),
+            'mail_opened' => array(
+                'mail_opened',
                 false
             ),
             'last_login' => array(
@@ -247,16 +253,8 @@ class Client_Table extends WP_List_Table
             case 'send_mail':
                 if ($users_id)
                     foreach ($users_id as $user_id) {
-                    	$user = get_userdata($user_id);
-                    	$link = create_autologin_link($user_id);
-                        $vars = array(
-                            'link' => $link
-                            );
-            			$body = get_email_template('/email/template.php', $vars);
-                        if ($body && wp_mail($user->user_email, 'Propale', $body))
-                            update_user_option($user_id, 'mail_sent', current_time('mysql'));
-                        else
-                            update_user_option($user_id, 'mail_sent', 'failed');
+                        $client = new Client($user_id);
+                        $client->send_mail();
 					}
                 clean_redirect_wp_admin();
                 break;

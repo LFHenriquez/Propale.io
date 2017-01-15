@@ -13,15 +13,20 @@ Actions
 ----------------------------------------------*/
 add_action('admin_menu', 'client_plugin_setup_menu');
 add_action('admin_enqueue_scripts', 'register_client_styles');
+add_action('admin_init', 'bulk_actions_client_page');
+add_action('admin_notices', 'display_admin_notification');
+add_action('init', 'create_new_client');
+add_action('init', 'update_client');
 
 /*----------------------------------------------
 Functions
 ----------------------------------------------*/
 function client_plugin_setup_menu()
 {
-    $hook = add_menu_page( 'Clients', 'Clients', 'manage_options', 'clients', 'client_page', 'dashicons-admin-users', 30);
-    add_submenu_page('clients', 'Clients', 'Clients', 'manage_options', 'clients', 'client_page');
-    add_submenu_page('clients', 'New Client', 'New Client', 'manage_options', 'new_client', 'new_client_page');
+    add_menu_page( 'Clients', 'Clients', 'manage_options', 'clients', 'clients_page', 'dashicons-admin-users', 30);
+    $hook = add_submenu_page('clients', 'Clients', 'Clients', 'manage_options', 'clients', 'clients_page');
+    add_submenu_page('clients', 'New Client', 'New Client', 'manage_options', 'new_client', 'client_page');
+    add_submenu_page(null, 'Client', 'Client', 'manage_options', 'client', 'client_page');
  
     add_screen_options_panel(
         'column-settings',                  //Panel ID
@@ -29,8 +34,18 @@ function client_plugin_setup_menu()
         'columns_default_settings_panel',   //The function that generates panel contents.
         array($hook),                       //Pages/screens where the panel is displayed. 
         null,                               //The function that gets triggered when settings are submitted/saved.
-        true                                //Auto-submit settings (via AJAX) when they change. 
+        false                               //Auto-submit settings (via AJAX) when they change. 
     );
+    add_filter('screen_settings', 'test', 10, 2);
+}
+
+function test ($current, $screen)
+{
+    //$test = $this->get_panels_for_screen($screen->id, $hook_suffix);
+    //var_dump($test);
+    $current .= columns_default_settings_panel();
+    //$current .= $screen->id;
+    return  $current;
 }
 
 function register_client_styles($hook)
@@ -46,6 +61,10 @@ function register_client_styles($hook)
             $styles[] = 'admin-page-client';
             break;
 
+        case 'admin_page_client':
+            $styles[] = 'admin-page-settings';
+            break;
+        
         case 'clients_page_new_client':
             $styles[] = 'admin-page-settings';
             $styles[] = 'auto-complete';
@@ -88,9 +107,8 @@ function bulk_actions_client_page()
         $_REQUEST['user_id'])
         Client_Table::process_bulk_action(); 
 }
-add_action('admin_init', 'bulk_actions_client_page');
 
-function client_page()
+function clients_page()
 {
     $screen = get_current_screen();
     if ($screen->id == 'toplevel_page_clients') { ?>
@@ -98,7 +116,7 @@ function client_page()
         <a href="<?php echo admin_url('admin.php?page=new_client'); ?>" class="action-button">Ajouter</a></h1>
         <form id="client_form" method="get"><input type="hidden" name="page" value="<?php echo $_REQUEST['page']; ?>"/>
         <p><strong>Liste des étiquettes à appliquer</strong> :
-    	<?php
+        <?php
         $args = array('hide_empty' => false);
         $terms = get_terms('slides-group', $args);
         if ($terms)
@@ -117,11 +135,9 @@ function client_page()
                 echo '<input type="hidden" name="' . $value . '" value="' . $_REQUEST[$value] . '"/>';
         }
         $client_table->display();
-    	echo "</form></div>";
+        echo "</form></div>";
     }
 }
-
-
 
 function create_new_client() {
     global $admin_notification;
@@ -130,33 +146,62 @@ function create_new_client() {
         isset($_REQUEST['name']) &&
         isset($_REQUEST['email']) )
     {
-        $user = Client::create($_REQUEST['name'], $_REQUEST['email'], $_REQUEST);
-        if (!is_wp_error($user)) {
-            clean_redirect_wp_admin(array('user_id' => $user->id), 'user-edit.php');
+        $client = Client::create($_REQUEST['name'], $_REQUEST['email'], $_REQUEST);
+        if (!is_wp_error($client)) {
+            clean_redirect_wp_admin(array('user_id' => $client->id), 'user-edit.php');
         }
         else {
-            $admin_notification = $user->get_error_message();
+            $admin_notification = $client->get_error_message();
             do_action('display_admin_notification', $admin_notification);
         }
     }
 }
-add_action('init', 'create_new_client');
 
-function new_client_page() {
-    global $client_info;
+function update_client() {
+    global $admin_notification;
+    if (isset($_REQUEST['action']) &&
+        $_REQUEST['action'] == 'update_client' &&
+        isset($_REQUEST['client_id']) )
+    {
+        $client = new Client($_REQUEST['client_id']);
+        if (!is_wp_error($client)) {
+            $fields = Client::fields_names();
+            $fields_to_modify = array_intersect_key($_REQUEST , array_flip($fields));
+            foreach ($fields_to_modify as $item => $value) {
+                $client->set_item($item, $value);
+            }
+            clean_redirect_wp_admin(array('page' => 'client', 'client_id' => $client->id));
+        }
+        else {
+            $admin_notification = $client->get_error_message();
+            do_action('display_admin_notification', $admin_notification);
+        }
+    }
+}
+
+function client_page() {
+    global $client_info, $wp_query;
     $screen = get_current_screen();
-        $client_info = Client::get_fields();
-        ?>
-        <h1>Create new user</h1>
+    $client_info = Client::get_fields();
+    if (isset($_GET['client_id'])) {
+        $client = new Client($_GET['client_id']);
+        echo "<h1>Modify user</h1>";
+    }
+    else {
+        $client = false;
+        echo "<h1>Create new user</h1>";
+    }
+    ?>
         <form method="get">
             <input type="hidden" name="page" value="<?php echo $_REQUEST['page']; ?>"/>
-            <input type="hidden" name="action" value="new_client"/>
+            <input type="hidden" name="action" value="<?php echo ($client)? 'update_client': 'new_client';?>"/>
+            <?php if($client) echo '<input type="hidden" name="client_id" value="'.$_GET['client_id'].'"/>' ; ?>
             <table class="th-left-align">
                 <?php foreach ($client_info as $item) { ?>
                     <tr>
                         <th><label for="<?php echo $item['name']; ?>"><?php echo $item['label']; ?></label></th>
                         <td>
-                            <input type="text" name="<?php echo $item['name']; ?>" id="<?php echo $item['name']; ?>" value="<?php echo get_option($item['name']); ?>" class="regular-text <?php if (isset($item['class'])) echo $item['class']?>" /><br />
+                            <input type="text" name="<?php echo $item['name']; ?>" id="slides_<?php echo $item['name']; ?>" value="<?php if($client) echo $client->get_item($item['name']); ?>" class="regular-text <?php if (isset($item['class'])) echo $item['class']?>" /><br />
                             <p class="description"><?php echo $item['description']; ?></p>
                         </td>
                     </tr>
@@ -182,9 +227,8 @@ function get_columns_default_settings() {
     return $column_to_display;
 }
 
-function columns_default_settings_panel(){
+function columns_default_settings_panel() {
     $defaults = get_columns_default_settings();
-     
     //Output checkboxes 
     $fields = Client_Table::columns();      
     $output = '';
@@ -202,7 +246,6 @@ function columns_default_settings_panel(){
             $legend
         );
     }
-     
     return $output;
 }
 
@@ -229,4 +272,3 @@ function display_admin_notification()
     if (isset($admin_notification))
         echo '<br><div id="message" class="error"><p>' . $admin_notification . '</p></div>';
 }
-add_action( 'admin_notices', 'display_admin_notification');

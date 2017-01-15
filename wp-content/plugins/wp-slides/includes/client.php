@@ -3,15 +3,15 @@
     private static $fields =
             array(
                 array(
-                    'name' => 'name',
+                    'name' => 'display_name',
                     'class' => 'typeahead',
                     'label' => 'Client name',
-                    'description' => 'Name of the client / Nom du client'
+                    'description' => 'Name of the client / Nom du client',
                 ),
                 array(
-                    'name' => 'email',
+                    'name' => 'user_email',
                     'label' => 'Email',
-                    'description' => 'Email address / Adresse email'
+                    'description' => 'Email address / Adresse email',
                 ),
                 array(
                     'name' => 'user_phone',
@@ -94,82 +94,128 @@
 
     public function get_user_phone()
     {
-        return get_item('user_phone');
+        return self::get_item('user_phone');
     }
 
     public function set_user_phone($value)
     {
-        return set_item('user_phone', $value);
+        return self::set_item('user_phone', $value);
     }
 
     public function get_user_logo()
     {
-        return get_item('user_logo');
+        return self::get_item('user_logo');
     }
 
     public function set_user_logo($value)
     {
-        return set_item('user_logo', $value);
+        return self::set_item('user_logo', $value);
     }
 
     public function get_groups_of_slides()
     {
-        return get_item('groups_of_slides');
+        return self::get_item('groups_of_slides');
     }
 
     public function set_groups_of_slides($value)
     {
-        return set_item('groups_of_slides', $value);
+        return self::set_item('groups_of_slides', $value);
     }
 
     public function get_mail_sent()
     {
-        return get_item('mail_sent');
+        return self::get_item('mail_sent');
     }
 
     public function send_mail()
     {
-        return set_item('mail_sent', current_time('mysql'));
+        $user = get_userdata($user_id);
+        $link = create_autologin_link($user_id);
+        $vars = array(
+            'id' => $user_id,
+            'link' => $link
+            );
+        $body = get_email_template('/email/template.php', $vars);
+        if ($body && wp_mail($user->user_email, 'Propale', $body))
+            return self::set_item('mail_sent', current_time('mysql'));
+        else
+            return false;
     }
 
     public function get_mail_opened()
     {
-        return get_item('mail_opened');
+        return self::get_item('mail_opened');
     }
 
-    public function mail_opened($value)
+    public function mail_opened()
     {
-        return set_item('mail_opened', current_time('mysql'));
+        return self::set_item('mail_opened', current_time('mysql'));
     }
 
     public function get_last_login()
     {
-        return get_item('last_login');
+        return self::get_item('last_login');
     }
 
     public function last_login()
     {
-        return set_item('last_login', current_time('mysql'));
+        return self::set_item('last_login', current_time('mysql'));
     }
 
-    private function get_item($item)
+    public function get_item($item)
     {
-        global $wpdb;
-        $prefix          = $wpdb->get_blog_prefix();
-        $table_name      = $prefix. 'proposal';
-        $query           = "
-            SELECT ".$item." FROM ".$table_name."
-            WHERE client_id=".$this->ID.";";
-        $result = $wpdb->get_var($query);
-        return $result;
+        $fields_meta = array('meta' => true);
+        $array = self::fields_names($fields_meta);
+        if (in_array($item, $array))
+        {
+            global $wpdb;
+            $prefix          = $wpdb->get_blog_prefix();
+            $table_name      = $prefix. 'proposal';
+            $query           = "
+                SELECT ".$item." FROM ".$table_name."
+                WHERE client_id=".$this->ID.";";
+            $result = $wpdb->get_var($query);
+            return $result;
+        }
+        else
+        {
+            return parent::get($item);
+        }
     }
 
-    private function set_item($item, $value)
+    public function set_item($item, $value)
     {
-        global $wpdb;
-        $prefix          = $wpdb->get_blog_prefix();
-        $table_name      = $prefix. 'proposal';
-        $result = $wpdb->update($table_name, array($item => $value), array('client_id' => $this->ID));
-        return $result;
+        $fields_meta = array('meta' => true);
+        $array = self::fields_names($fields_meta);
+        if (in_array($item, $array))
+        {        
+            global $wpdb;
+            $prefix          = $wpdb->get_blog_prefix();
+            $table_name      = $prefix. 'proposal';
+            $result = $wpdb->update($table_name, array($item => $value), array('client_id' => $this->ID));
+            return $result;
+        }
+        else
+        {
+            return wp_update_user( array( 'ID' => $this->ID, $item => $value ) );
+        }
+    }
+
+    public static function fields_names($cond = false)
+    {
+        $fields_names = array();
+        if (self::$fields)
+            foreach (self::$fields as $item) {
+                if ($cond) {
+                    foreach ($cond as $condition => $value) {
+                        if (isset($item[$condition]) && $item[$condition] == $value)
+                                $fields_names[] = $item['name'];
+                    }
+                }
+                else {
+                    $fields_names[] = $item['name'];
+                }
+            }
+        return $fields_names;
     }
 }

@@ -3,13 +3,13 @@ function mail_tracking_template_redirect_intercept() {
 	global $wp_query;
 	if( $wp_query->get('mail-tracking') ) {
 		$id = $wp_query->get('user-id');
-		$client = Client($id);
+		$client = new Client($id);
 		$client->mail_opened();
-		$file = '../img/img.png';
+		$file = PLUGIN_DIR. '/img/img.png';
 		$type = 'image/png';
 		header('Content-Type:'. $type);
 		header('Content-Length: '. filesize($file));
-		readfile($file);		
+		readfile($file);
 		exit;
 	}
 }

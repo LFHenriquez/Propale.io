@@ -32,6 +32,7 @@ include(PLUGIN_DIR . 'includes/admin.php');		        // the plugin options page 
 include(PLUGIN_DIR . 'includes/settings.php');          // settings page for the extension
 include(PLUGIN_DIR . 'includes/slide-shortcode.php');   // the slides' shortcode
 include(PLUGIN_DIR . 'includes/ajax.php');   			// ajax backend
+include(PLUGIN_DIR . 'includes/mail-tracking.php');   	// mail tracking
 // include(PLUGIN_DIR . 'includes/users.php');             // the plugin new fields in users.php
 
 
@@ -56,10 +57,20 @@ function wp_slides_activate()
         ));
         update_option('user_guest_role', $guest_role, yes);
         update_option('default_role', $guest_role, yes);
-        update_option('enable_slack_notification', 'false', yes);
-        update_option('slack_room', '', yes);
-        update_option('slack_webhook', '', yes);
     }
+
+    if (!get_role('commercial')) {
+        add_role('commercial', 'Commercial', array(
+            'read' => true,
+            'edit_slide' => true,
+            'edit_slides' => true,
+            'level_0' => true
+        ));
+    }
+
+    update_option('enable_slack_notification', 'false', yes);
+    update_option('slack_room', '', yes);
+    update_option('slack_webhook', '', yes);
 
     $prefix = $wpdb->get_blog_prefix();
     $table_name	= $prefix. 'proposal';

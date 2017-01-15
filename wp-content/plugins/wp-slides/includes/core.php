@@ -24,6 +24,8 @@ function create_slides_type() {
         'publicly_queryable' => true,
         'show_ui' => true,
         'has_archive' => true,
+        'can_export' => true,
+        'rewrite' => true,
         'supports' => array(
             'title' => true,
             'editor' => true,
@@ -34,9 +36,18 @@ function create_slides_type() {
             'comments' => false,
             'revisions' => true,
             'page-attributes' => false
-            )
-        )
-    );
+        ),
+        'capabilities' => array(
+            'edit_post' => 'edit_slide',
+            'edit_posts' => 'edit_slides',
+            'edit_others_posts' => 'edit_other_slides',
+            'publish_posts' => 'publish_slides',
+            'read_post' => 'read_slide',
+            'read_private_posts' => 'read_private_slides',
+            'delete_post' => 'delete_slide'
+        ),
+        'map_meta_cap' => true
+    ));
 }
 
 /**

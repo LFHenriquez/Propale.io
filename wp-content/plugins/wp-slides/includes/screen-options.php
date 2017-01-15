@@ -24,7 +24,6 @@ class wsScreenOptions10 {
 	function __constructor(){
 		$this->registered_panels = array();
 		$this->page_panels = array();
-		
 		add_filter('screen_settings', array(&$this, 'append_screen_settings'), 10, 2);
 		add_action('admin_print_scripts', array(&$this, 'add_autosave_script'));
 	} 
@@ -55,7 +54,6 @@ class wsScreenOptions10 {
 			'save_callback' => $save_callback,
 			'autosave' => $autosave,
 		);
-		
 		if ( $save_callback ){
 			add_action('wp_ajax_save_settings-' . $id, array(&$this, 'ajax_save_callback'));
 		}
@@ -105,7 +103,7 @@ class wsScreenOptions10 {
 	 */
 	function append_screen_settings($current, $screen){
 		global $hook_suffix;
-		
+
 		//Sanity check
 		if ( !isset($screen->id) ) {
 			return $current;
@@ -233,7 +231,7 @@ class wsScreenOptions10 {
 			if ( isset($this->page_panels[$page_as_screen]) && !empty($this->page_panels[$page_as_screen]) ){
 				$panels = array_merge($panels, $this->page_panels[$page_as_screen]);
 			}
-		}		
+		}
 		return array_unique($panels);
 	}
 }
