@@ -141,14 +141,16 @@ function clients_page()
 
 function create_new_client() {
     global $admin_notification;
-    if (isset($_REQUEST['action']) &&
+    if (isset($_REQUEST['page']) &&
+        $_REQUEST['page'] = 'new_client' &&
+        isset($_REQUEST['action']) &&
         $_REQUEST['action'] == 'new_client' &&
-        isset($_REQUEST['name']) &&
-        isset($_REQUEST['email']) )
+        isset($_REQUEST['display_name']) &&
+        isset($_REQUEST['user_email']) )
     {
-        $client = Client::create($_REQUEST['name'], $_REQUEST['email'], $_REQUEST);
+        $client = Client::create($_REQUEST['display_name'], $_REQUEST['user_email'], $_REQUEST);
         if (!is_wp_error($client)) {
-            clean_redirect_wp_admin(array('user_id' => $client->id), 'user-edit.php');
+            clean_redirect_wp_admin(array('page' => 'client', 'client_id' => $client->id));
         }
         else {
             $admin_notification = $client->get_error_message();
@@ -193,7 +195,7 @@ function client_page() {
     }
     ?>
         <form method="get">
-            <input type="hidden" name="page" value="<?php echo $_REQUEST['page']; ?>"/>
+            <input type="hidden" name="page" value="new_client"/>
             <input type="hidden" name="action" value="<?php echo ($client)? 'update_client': 'new_client';?>"/>
             <?php if($client) echo '<input type="hidden" name="client_id" value="'.$_GET['client_id'].'"/>' ; ?>
             <table class="th-left-align">
