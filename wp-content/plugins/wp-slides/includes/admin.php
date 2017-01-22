@@ -14,7 +14,6 @@ Actions
 add_action('admin_menu', 'client_plugin_setup_menu');
 add_action('admin_enqueue_scripts', 'register_client_styles');
 add_action('admin_init', 'bulk_actions_client_page');
-add_action('admin_notices', 'display_admin_notification');
 add_action('init', 'create_new_client');
 add_action('init', 'update_client');
 
@@ -100,47 +99,62 @@ function register_client_styles($hook)
 
 function bulk_actions_client_page()
 {
+    $admin_notification;
+    $admin_error;
     if (isset($_REQUEST['page']) &&
-        isset($_REQUEST['action']) &&
+        (isset($_REQUEST['action']) || isset($_REQUEST['action2'])) &&
         isset($_REQUEST['user_id']) &&
-        $_REQUEST['page'] == 'clients' &&
         $_REQUEST['user_id'])
-        Client_Table::process_bulk_action(); 
-}
+    {
 
-function clients_page()
-{
-    $screen = get_current_screen();
-    if ($screen->id == 'toplevel_page_clients') { ?>
-        <div class="wrap"><h1>Clients
-        <a href="<?php echo admin_url('admin.php?page=new_client'); ?>" class="action-button">Ajouter</a></h1>
-        <form id="client_form" method="get"><input type="hidden" name="page" value="<?php echo $_REQUEST['page']; ?>"/>
-        <p><strong>Liste des étiquettes à appliquer</strong> :
-        <?php
-        $args = array('hide_empty' => false);
-        $terms = get_terms('slides-group', $args);
-        if ($terms)
-            foreach ($terms as $key => $term) {
-                if (isset($_REQUEST['groups_of_slides_checked']))
-                    $checked = (in_array($term->slug, explode(',', $_REQUEST['groups_of_slides_checked']))) ? 'checked' : '';
+        $action   = ($_REQUEST['action'] != -1)?
+            $_REQUEST['action']:
+            $_REQUEST['action2'];
+        $groups_of_slides = (isset($_REQUEST['groups_of_slides']))?
+            $_REQUEST['groups_of_slides'] :
+            null;
+        $users_id = $_REQUEST['user_id'];
+
+        $value = Client_Table::process_bulk_action($action, $users_id, $groups_of_slides);
+
+        switch ($action) {
+            case 'send_mail':
+                if ($value)
+                {
+                    $admin_notification = 'Mail sent';
+                    do_action('display_admin_notification', $admin_notification);
+                    clean_redirect_wp_admin(array(
+                        'page' => 'clients',
+                        'admin_notification' => urlencode($admin_notification) 
+                        ));
+                }
                 else
-                    $checked = '';
-                echo "<input type='checkbox' name='tags[]' value='" . $term->slug . "' " . $checked . ">" . $term->slug;
-            }
-        $client_table = new Client_Table;
-        $client_table->prepare_items();
-        echo "</p>";
-        foreach (array('orderby','order','paged','per_page') as $value) {
-            if (isset($_REQUEST[$value]))
-                echo '<input type="hidden" name="' . $value . '" value="' . $_REQUEST[$value] . '"/>';
+                {
+                    $admin_error = 'Mail failed to send';
+                    do_action('display_admin_error', $admin_error);
+                    clean_redirect_wp_admin(array(
+                        'page' => 'clients',
+                        'admin_error' => urlencode($admin_error) 
+                        ));
+                }
+            break;
+
+            case 'get_groups_of_slides':
+                clean_redirect_wp_admin(array(
+                    'page' => 'clients',
+                    'groups_of_slides_checked' => $value
+                    ));
+            break;
+
+            default:
+                clean_redirect_wp_admin(array('page' => 'clients'));
+            break;
         }
-        $client_table->display();
-        echo "</form></div>";
     }
 }
 
 function create_new_client() {
-    global $admin_notification;
+    global $admin_error;
     if (isset($_REQUEST['page']) &&
         $_REQUEST['page'] = 'new_client' &&
         isset($_REQUEST['action']) &&
@@ -153,14 +167,14 @@ function create_new_client() {
             clean_redirect_wp_admin(array('page' => 'client', 'client_id' => $client->id));
         }
         else {
-            $admin_notification = $client->get_error_message();
-            do_action('display_admin_notification', $admin_notification);
+            $admin_error = $client->get_error_message();
+            do_action('display_admin_error', $admin_error);
         }
     }
 }
 
 function update_client() {
-    global $admin_notification;
+    global $admin_error;
     if (isset($_REQUEST['action']) &&
         $_REQUEST['action'] == 'update_client' &&
         isset($_REQUEST['client_id']) )
@@ -175,9 +189,40 @@ function update_client() {
             clean_redirect_wp_admin(array('page' => 'client', 'client_id' => $client->id));
         }
         else {
-            $admin_notification = $client->get_error_message();
-            do_action('display_admin_notification', $admin_notification);
+            $admin_error = $client->get_error_message();
+            do_action('display_admin_error', $admin_error);
         }
+    }
+}
+
+function clients_page()
+{
+    $screen = get_current_screen();
+    if ($screen->id == 'toplevel_page_clients') { ?>
+        <div class="wrap"><h1>Clients
+        <a href="<?php echo admin_url('admin.php?page=new_client'); ?>" class="action-button">Ajouter</a></h1>
+        <form id="client_form" method="get">
+        <input type="hidden" name="page" value="clients">
+        <p><strong>Liste des étiquettes à appliquer</strong> :
+        <?php
+        $terms = get_terms('slides-group', array('hide_empty' => false));
+        if ($terms)
+            foreach ($terms as $key => $term) {
+                if (isset($_REQUEST['groups_of_slides_checked']))
+                    $checked = (in_array($term->slug, explode(',', $_REQUEST['groups_of_slides_checked']))) ? 'checked' : '';
+                else
+                    $checked = '';
+                echo "<input type='checkbox' name='groups_of_slides[]' value='" . $term->slug . "' " . $checked . ">" . $term->slug;
+            }
+        $client_table = new Client_Table;
+        $client_table->prepare_items();
+        echo "</p>";
+        foreach (array('orderby','order','paged','per_page') as $value) {
+            if (isset($_REQUEST[$value]))
+                echo '<input type="hidden" name="' . $value . '" value="' . $_REQUEST[$value] . '"/>';
+        }
+        $client_table->display();
+        echo "</form></div>";
     }
 }
 
@@ -199,15 +244,20 @@ function client_page() {
             <input type="hidden" name="action" value="<?php echo ($client)? 'update_client': 'new_client';?>"/>
             <?php if($client) echo '<input type="hidden" name="client_id" value="'.$_GET['client_id'].'"/>' ; ?>
             <table class="th-left-align">
-                <?php foreach ($client_info as $item) { ?>
-                    <tr>
-                        <th><label for="<?php echo $item['name']; ?>"><?php echo $item['label']; ?></label></th>
-                        <td>
-                            <input type="text" name="<?php echo $item['name']; ?>" id="slides_<?php echo $item['name']; ?>" value="<?php if($client) echo $client->get_item($item['name']); ?>" class="regular-text <?php if (isset($item['class'])) echo $item['class']?>" /><br />
-                            <p class="description"><?php echo $item['description']; ?></p>
-                        </td>
-                    </tr>
-                <?php } ?>
+                <?php foreach ($client_info as $item) {
+                    if ($item['editable'])
+                    {
+                    ?>
+                        <tr>
+                            <th><label for="<?php echo $item['name']; ?>"><?php echo $item['label']; ?></label></th>
+                            <td>
+                                <input type="text" name="<?php echo $item['name']; ?>" id="slides_<?php echo $item['name']; ?>" value="<?php if($client) echo $client->get_item($item['name']); ?>" class="regular-text <?php if (isset($item['class'])) echo $item['class']?>" /><br />
+                                <p class="description"><?php echo $item['description']; ?></p>
+                            </td>
+                        </tr>
+                    <?php 
+                    }
+                } ?>
                 <tr>
                     <th></th>
                     <td>
@@ -266,11 +316,4 @@ function save_new_columns_defaults($params){
      
     //Store the new defaults
     wp_slides_set_default_settings($defaults);
-}
-
-function display_admin_notification()
-{
-    global $admin_notification;
-    if (isset($admin_notification))
-        echo '<br><div id="message" class="error"><p>' . $admin_notification . '</p></div>';
 }

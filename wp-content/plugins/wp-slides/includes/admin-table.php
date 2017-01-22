@@ -155,33 +155,29 @@ class Client_Table extends WP_List_Table
     public function get_bulk_actions()
     {
         $actions = array(
-            'get_group_of_slide' => 'Groupe de Slides',
-            'add_group_of_slide' => 'Ajouter groupe de slides',
-            'copy_group_of_slide' => 'Répliquer groupe de slides',
-            'delete_group_of_slide' => 'Supprimer groupe de slides',
+            'get_groups_of_slides' => 'Groupe de Slides',
+            'add_groups_of_slides' => 'Ajouter groupe de slides',
+            'copy_groups_of_slides' => 'Répliquer groupe de slides',
+            'delete_groups_of_slides' => 'Supprimer groupe de slides',
             'send_mail' => 'Envoyer mail(s)'
         );
         return $actions;
     }
     
-    public static function process_bulk_action()
+    public static function process_bulk_action($action, $users_id, $groups_of_slides = null)
     {
         // security check!
         if (isset($_POST['_wpnonce']) && !empty($_POST['_wpnonce'])) {
             
             $nonce  = filter_input(INPUT_POST, '_wpnonce', FILTER_SANITIZE_STRING);
-            $action = 'bulk-groups_of_slides';
             
             if (!wp_verify_nonce($nonce, $action))
                 wp_die('Nope! Security check failed!');
         }
-        
-        $action   = $_REQUEST['action'];
-        $users_id = $_REQUEST['user_id'];
-        
+
         switch ($action) {
             
-            case 'get_group_of_slide':
+            case 'get_groups_of_slides':
                 $get_groups_of_slides = array();
                 if ($users_id)
                 {
@@ -195,73 +191,55 @@ class Client_Table extends WP_List_Table
                             }
                         }
                     }
-                    $groups_of_slides_to_check = implode(',', $current_groups_of_slides);
-                    clean_redirect_wp_admin(array(
-                        'groups_of_slides_checked' => $groups_of_slides_to_check
-                    ));
+                    $groups_of_slides_to_check = implode(',', $get_groups_of_slides);
+                    return $groups_of_slides_to_check;
                 }
                 else
-                    clean_redirect_wp_admin();
+                    return false;
                 break;
             
-            case 'add_group_of_slide':
+            case 'add_groups_of_slides':
                 if ($users_id)
                     foreach ($users_id as $user_id) {
                         $client = new Client($user_id);
-                        $current_groups_of_slides_temp = $client->get_groups_of_slides();
-                        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
-                        if ($groups_of_slides)
-                            foreach ($groups_of_slides as $group_of_slide) {
-                                if (array_search($group_of_slide, $current_groups_of_slides) === false) {
-                                    if ($current_groups_of_slides[0] == '')
-                                        $current_groups_of_slides[0] = $group_of_slide;
-                                    else
-                                        $current_groups_of_slides[] = $group_of_slide;
-                                }
-                            }
-                        $new_groups_of_slides = implode(',', $current_groups_of_slides);
-                        $client->set_groups_of_slides($new_groups_of_slides);
+                        $client->add_groups_of_slides($groups_of_slides);
                     }
-                var_dump($new_groups_of_slides);
-                //clean_redirect_wp_admin();
+                return true;
                 break;
             
-            case 'copy_group_of_slide':
+            case 'copy_groups_of_slides':
                 if ($users_id)
                     foreach ($users_id as $user_id) {
-                        update_user_option((int) $user_id, 'groups_of_slides', $groups_of_slides);
+                        $client = new Client($user_id);
+                        $client->copy_groups_of_slides($groups_of_slides);
                     }
-                clean_redirect_wp_admin();
+                return true;
                 break;
             
-            case 'delete_group_of_slide':
+            case 'delete_groups_of_slides':
                 if ($users_id)
                     foreach ($users_id as $user_id) {
-                        $current_groups_of_slides = explode(',', get_user_option('groups_of_slides', (int) $user_id));
-                        if ($groups_of_slides)
-                            foreach ($groups_of_slides as $group_of_slide) {
-                                if (($key = array_search($group_of_slide, $current_groups_of_slides)) !== false) {
-                                    unset($current_groups_of_slides[$key]);
-                                }
-                            }
-                        $new_groups_of_slides = implode(',', $current_groups_of_slides);
-                        update_user_option((int) $user_id, 'groups_of_slides', $new_groups_of_slides);
+                        $client = new Client($user_id);
+                        $client->delete_groups_of_slides($groups_of_slides);
                     }
-                clean_redirect_wp_admin();
+                return true;
                 break;
 
             case 'send_mail':
+                $success = true;
                 if ($users_id)
                     foreach ($users_id as $user_id) {
                         $client = new Client($user_id);
-                        $client->send_mail();
-					}
-                clean_redirect_wp_admin();
+                        $result = $client->send_mail();
+                        if (!$result)
+                            $success = false;
+                    }
+                return $success;
                 break;
             
             default:
                 // do nothing or something else
-                return;
+                return false;
                 break;
         }
     }

@@ -6,29 +6,52 @@
                     'name' => 'display_name',
                     'class' => 'typeahead',
                     'label' => 'Client name',
+                    'editable' => true,
                     'description' => 'Name of the client / Nom du client',
                 ),
                 array(
                     'name' => 'user_email',
                     'label' => 'Email',
+                    'editable' => true,
                     'description' => 'Email address / Adresse email',
                 ),
                 array(
                     'name' => 'user_phone',
                     'label' => 'Phone',
                     'description' => 'Phone number / Numéro de téléphone',
+                    'editable' => true,
                     'meta' => true
                 ),
                 array(
                     'name' => 'user_logo',
                     'label' => 'Logo',
                     'description' => 'Url of the client\'s logo / Url du logo du client',
+                    'editable' => true,
                     'meta' => true
                 ),
                 array(
                     'name' => 'groups_of_slides',
                     'label' => 'Slides',
                     'description' => 'Slides to display / Slides à afficher',
+                    'editable' => true,
+                    'meta' => true
+                ),
+                array(
+                    'name' => 'mail_sent',
+                    'label' => 'Mail sent',
+                    'editable' => false,
+                    'meta' => true
+                ),
+                array(
+                    'name' => 'mail_opened',
+                    'label' => 'Mail opened',
+                    'editable' => false,
+                    'meta' => true
+                ),
+                array(
+                    'name' => 'last_login',
+                    'label' => 'Last login',
+                    'editable' => false,
                     'meta' => true
                 )
             );
@@ -114,12 +137,54 @@
 
     public function get_groups_of_slides()
     {
-        return self::get_item('groups_of_slides');
+        $values = self::get_item('groups_of_slides');
+        sort($values);
+        return $values;
     }
 
     public function set_groups_of_slides($value)
     {
         return self::set_item('groups_of_slides', $value);
+    }
+
+    public function add_groups_of_slides($values)
+    {
+        $current_groups_of_slides_temp = $this->get_groups_of_slides();
+        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
+        if ($values)
+            foreach ($values as $value) {
+                if (array_search($value, $current_groups_of_slides) === false) {
+                    if ($current_groups_of_slides[0] == '')
+                        $current_groups_of_slides[0] = $value;
+                    else
+                        $current_groups_of_slides[] = $value;
+                }
+            }
+        sort($current_groups_of_slides);
+        $new_groups_of_slides = implode(',', $current_groups_of_slides);
+        $this->set_groups_of_slides($new_groups_of_slides);
+    }
+
+    public function copy_groups_of_slides($values)
+    {
+        sort($values);
+        $new_groups_of_slides = implode(',', $values);
+        $this->set_groups_of_slides($new_groups_of_slides);
+    }
+
+    public function delete_groups_of_slides($values)
+    {
+        $current_groups_of_slides_temp = $this->get_groups_of_slides();
+        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
+        if ($values)
+            foreach ($values as $value) {
+                if (($key = array_search($value, $current_groups_of_slides)) !== false) {
+                    unset($current_groups_of_slides[$key]);
+                }
+            }
+        sort($current_groups_of_slides);
+        $new_groups_of_slides = implode(',', $current_groups_of_slides);
+        $this->set_groups_of_slides($new_groups_of_slides);
     }
 
     public function get_mail_sent()

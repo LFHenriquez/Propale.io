@@ -1,5 +1,8 @@
 <?php
 
+add_action('admin_notices', 'display_admin_error');
+add_action('admin_notices', 'display_admin_notification');
+
 function clean_redirect_wp_admin($args = array(), $page = 'admin.php')
 {
     $params = (isset($_REQUEST['page']) && $page == 'admin.php')? 'page=' . $_REQUEST['page']: '';
@@ -73,4 +76,22 @@ function create_autologin_link($user_id)
 function check_autologin_link($login, $key)
 {
 	return (md5($login . wp_salt()) == $key);
+}
+
+function display_admin_error()
+{
+    global $admin_error;
+    if (isset($_REQUEST['admin_error']))
+        $admin_error = urldecode($_REQUEST['admin_error']);
+    if (isset($admin_error))
+        echo '<br><div id="message" class="notice notice-error is-dismissible"><p>' . $admin_error . '</p></div>';
+}
+
+function display_admin_notification()
+{
+    global $admin_notification;
+    if (isset($_REQUEST['admin_notification']))
+        $admin_notification = urldecode($_REQUEST['admin_notification']);
+    if (isset($admin_notification))
+        echo '<br><div id="message" class="notice notice-success is-dismissible"><p>' . $admin_notification . '</p></div>';
 }
