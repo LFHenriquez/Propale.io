@@ -38,7 +38,7 @@ jQuery(document).ready(function($) {
 	          pending: '<p align="center">Loading</p>'
 	        },
 	      }).bind('typeahead:select', function(ev, suggestion) {
-	      		$("#user_logo").attr("value",suggestion.logo);
+	      		$("#slides_user_logo").attr("value",suggestion.logo);
 	      		$(".typeahead").typeahead('val',suggestion.name);
 	    });
 });

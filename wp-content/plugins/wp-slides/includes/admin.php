@@ -35,7 +35,7 @@ function client_plugin_setup_menu()
         null,                               //The function that gets triggered when settings are submitted/saved.
         false                               //Auto-submit settings (via AJAX) when they change. 
     );
-    add_filter('screen_settings', 'test', 10, 2);
+    // add_filter('screen_settings', 'test', 10, 2);
 }
 
 function test ($current, $screen)

@@ -110,6 +110,12 @@
             return $result;
     }
 
+    public function is_client() {
+        $user = get_userdata( $this->ID );
+        $guest_role = get_option('user_guest_role','guest');
+        return ( in_array( $guest_role, (array) $user->roles ) )? true: false;
+    }
+
     public static function get_fields()
     {
         return self::$fields;
@@ -138,19 +144,20 @@
     public function get_groups_of_slides()
     {
         $values = self::get_item('groups_of_slides');
+        $values = explode(',', $values);
         sort($values);
         return $values;
     }
 
-    public function set_groups_of_slides($value)
+    public function set_groups_of_slides($values)
     {
-        return self::set_item('groups_of_slides', $value);
+        $values = implode(',', $values);
+        return self::set_item('groups_of_slides', $values);
     }
 
     public function add_groups_of_slides($values)
     {
-        $current_groups_of_slides_temp = $this->get_groups_of_slides();
-        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
+        $current_groups_of_slides = $this->get_groups_of_slides();
         if ($values)
             foreach ($values as $value) {
                 if (array_search($value, $current_groups_of_slides) === false) {
@@ -160,31 +167,25 @@
                         $current_groups_of_slides[] = $value;
                 }
             }
-        sort($current_groups_of_slides);
-        $new_groups_of_slides = implode(',', $current_groups_of_slides);
-        $this->set_groups_of_slides($new_groups_of_slides);
+        var_dump($current_groups_of_slides);   
+        $this->set_groups_of_slides($current_groups_of_slides);
     }
 
     public function copy_groups_of_slides($values)
     {
-        sort($values);
-        $new_groups_of_slides = implode(',', $values);
-        $this->set_groups_of_slides($new_groups_of_slides);
+        $this->set_groups_of_slides($values);
     }
 
     public function delete_groups_of_slides($values)
     {
-        $current_groups_of_slides_temp = $this->get_groups_of_slides();
-        $current_groups_of_slides = explode(',', $current_groups_of_slides_temp);
+        $current_groups_of_slides = $this->get_groups_of_slides();
         if ($values)
             foreach ($values as $value) {
                 if (($key = array_search($value, $current_groups_of_slides)) !== false) {
                     unset($current_groups_of_slides[$key]);
                 }
             }
-        sort($current_groups_of_slides);
-        $new_groups_of_slides = implode(',', $current_groups_of_slides);
-        $this->set_groups_of_slides($new_groups_of_slides);
+        $this->set_groups_of_slides($current_groups_of_slides);
     }
 
     public function get_mail_sent()
@@ -194,14 +195,13 @@
 
     public function send_mail()
     {
-        $user = get_userdata($user_id);
-        $link = create_autologin_link($user_id);
+        $user_email = self::get_item('user_email');
+        $link = create_autologin_link($this->ID);
         $vars = array(
-            'id' => $user_id,
+            'id' => $this->ID,
             'link' => $link
             );
-        $body = get_email_template('/email/template.php', $vars);
-        if ($body && wp_mail($user->user_email, 'Propale', $body))
+        if ($body && wp_mail($user_email, 'Propale', $body))
             return self::set_item('mail_sent', current_time('mysql'));
         else
             return false;

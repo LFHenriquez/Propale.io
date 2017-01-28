@@ -5,6 +5,7 @@ Action
 ----------------------------------------------*/
 add_action( 'init', 'create_slides_type' );
 add_action( 'init', 'create_slides_taxonomy');
+add_action( 'admin_init', 'add_wp_slides_caps');
 
 /*----------------------------------------------
 Functions
@@ -27,26 +28,21 @@ function create_slides_type() {
         'can_export' => true,
         'rewrite' => true,
         'supports' => array(
-            'title' => true,
-            'editor' => true,
-            'author' => true,
-            'thumbnail' => true,
-            'excerpt' => false,
-            'custom-fields' => true,
-            'comments' => false,
-            'revisions' => true,
-            'page-attributes' => false
+            'title',
+            'editor',
+            'author',
+            // 'custom-fields',
+            'revisions',
         ),
         'capabilities' => array(
-            'edit_post' => 'edit_slide',
+            'edit_post' => 'edit_slides',
             'edit_posts' => 'edit_slides',
             'edit_others_posts' => 'edit_other_slides',
-            'publish_posts' => 'publish_slides',
-            'read_post' => 'read_slide',
-            'read_private_posts' => 'read_private_slides',
-            'delete_post' => 'delete_slide'
+            'publish_posts' => 'edit_slides',
+            'read_post' => 'read',
+            'read_private_posts' => 'read',
+            'delete_post' => 'edit_slides'
         ),
-        'map_meta_cap' => true
     ));
 }
 
@@ -76,7 +72,23 @@ function create_slides_taxonomy() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'slides-group' ),
+        'capabilites'       => array(
+            'manage_terms'  => 'edit_slides',
+            'edit_terms'    => 'edit_slides',
+            'delete_terms'  => 'edit_slides',
+            'assign_terms'  => 'edit_slides'
+        ),
     );
 
     register_taxonomy( 'slides-group', array( 'slide' ), $args );
+}
+
+function add_wp_slides_caps() {
+    // gets the administrator role
+    $admins = get_role( 'administrator' );
+    $admins->add_cap( 'edit_other_slides' ); 
+    $admins->add_cap( 'edit_slides' );
+
+    $commercials = get_role( 'commercial' );
+    $commercials->add_cap( 'edit_slides' );
 }

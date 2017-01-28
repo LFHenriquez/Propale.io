@@ -48,12 +48,18 @@ class Client_Table extends WP_List_Table
             case "user_email":
             case "user_phone":
             case "groups_of_slides":
+                return $item[$column_name];
+                break;
+
             case "mail_sent":
             case "mail_opened":
             case "last_login":
-                return $item[$column_name];
+                return time_ago($item[$column_name]);
+                break;
+
             default:
                 return print_r($item, true); //Show the whole array for troubleshooting purposes
+                break;
         }
     }
     
@@ -96,7 +102,7 @@ class Client_Table extends WP_List_Table
             'groups_of_slides' 	=> 'Groupe de Slides',
             'mail_sent'     => 'Mail envoyé',
             'mail_opened' 	=> 'Mail ouvert',
-            'last_login' 	=> 'Dernière connexion',
+            'last_login' 	=> 'Connexion',
             'user_phone' 	=> 'Téléphone'
         ); 
     }

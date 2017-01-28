@@ -9,6 +9,7 @@ wp-content/cache/
 wp-content/upgrade/
 wp-content/uploads/
 wp-content/wp-cache-config.php
+wp-content/db*
 /license.txt
 /readme.html
 /sitemap.xml
@@ -46,6 +47,7 @@ Temporary Items
 
 # Windows
 # =========================
+*.symlink
 
 # Windows image file caches
 Thumbs.db
@@ -110,3 +112,4 @@ access_log
 ehthumbs.db
 *[Tt]humbs.db
 *.Trashes
+wp-content/db.php

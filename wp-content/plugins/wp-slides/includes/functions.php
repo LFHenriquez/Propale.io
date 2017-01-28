@@ -51,14 +51,12 @@ function get_email_template($filepath, $vars) {
     // get the template from email folder
     $path = PLUGIN_DIR . $filepath;
     if(file_exists($path)) {
-    	$failed = false;
-        require($path);
         extract($vars);
         ob_start();
+        require($path);
         $body = ob_get_contents();
         ob_end_clean();
-        if (!$failed)
-        	return $body;
+        return $body;
     }
     return false;
 }
@@ -84,7 +82,7 @@ function display_admin_error()
     if (isset($_REQUEST['admin_error']))
         $admin_error = urldecode($_REQUEST['admin_error']);
     if (isset($admin_error))
-        echo '<br><div id="message" class="notice notice-error is-dismissible"><p>' . $admin_error . '</p></div>';
+        echo '<br><div id="message" class="notice notice-error is-dismissible">' . $admin_error . '</div>';
 }
 
 function display_admin_notification()
@@ -93,5 +91,56 @@ function display_admin_notification()
     if (isset($_REQUEST['admin_notification']))
         $admin_notification = urldecode($_REQUEST['admin_notification']);
     if (isset($admin_notification))
-        echo '<br><div id="message" class="notice notice-success is-dismissible"><p>' . $admin_notification . '</p></div>';
+        echo '<br><div id="message" class="notice notice-success is-dismissible">' . $admin_notification . '</div>';
+}
+
+function time_ago( $date )
+{
+    if( empty( $date ) )
+    {
+        return "";
+    }
+
+    $periods = array("second", "minute", "hour", "day", "week", "month", "year", "decade");
+
+    $lengths = array("60","60","24","7","4.35","12","10");
+
+    $now = current_time( 'timestamp' );
+
+    $unix_date = strtotime( $date );
+
+    // check validity of date
+
+    if( empty( $unix_date ) )
+    {
+        return "Bad date";
+    }
+
+    // is it future date or past date
+
+    if( $now > $unix_date )
+    {
+        $difference = $now - $unix_date;
+        $tense = "ago";
+    }
+    else
+    {
+        $difference = $unix_date - $now;
+        $tense = "from now";
+    }
+
+    for( $j = 0; $difference >= $lengths[$j] && $j < count($lengths)-1; $j++ )
+    {
+        $difference /= $lengths[$j];
+    }
+
+    $difference = round( $difference );
+
+    if( $difference != 1 )
+    {
+        $periods[$j].= "s";
+    }
+
+    return "$difference $periods[$j] {$tense}";
+
 }
