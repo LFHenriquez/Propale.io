@@ -201,6 +201,8 @@
             'id' => $this->ID,
             'link' => $link
             );
+        $body = get_email_template("template.php", $vars);
+        var_dump($body);
         if ($body && wp_mail($user_email, 'Propale', $body))
             return self::set_item('mail_sent', current_time('mysql'));
         else

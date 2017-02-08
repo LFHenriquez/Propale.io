@@ -10,6 +10,7 @@ wp-content/upgrade/
 wp-content/uploads/
 wp-content/wp-cache-config.php
 wp-content/db*
+wp-content/vpdb/options/*
 /license.txt
 /readme.html
 /sitemap.xml

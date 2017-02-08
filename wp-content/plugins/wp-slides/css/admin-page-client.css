@@ -55,3 +55,7 @@
 .wp-admin p input[type=checkbox] {
     margin-left: 7px;
 }
+.notice {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}

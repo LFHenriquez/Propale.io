@@ -21,9 +21,9 @@ function show_slides( $query )
 			$slides_groups = $client->get_groups_of_slides();
 		    $query->set( 'tax_query', array(
 		            array(
-		                'taxonomy' => 'slides-group',
-		                'field' => 'slug',
-		                'terms' => $slides_groups
+						'taxonomy' => 'slides-group',
+						'field'    => 'slug',
+						'terms'    => $slides_groups
 		            )
 		        )
 		    );

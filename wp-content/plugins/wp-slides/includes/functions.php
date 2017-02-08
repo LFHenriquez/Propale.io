@@ -49,7 +49,7 @@ function slack_message($message, $room = null, $icon = ':longbox:')
 
 function get_email_template($filepath, $vars) {
     // get the template from email folder
-    $path = PLUGIN_DIR . $filepath;
+    $path = PLUGIN_DIR . "email/" .$filepath;
     if(file_exists($path)) {
         extract($vars);
         ob_start();
